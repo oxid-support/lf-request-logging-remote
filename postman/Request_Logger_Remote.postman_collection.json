@@ -1,0 +1,638 @@
+{
+	"info": {
+		"_postman_id": "request-logger-remote-collection",
+		"name": "Request Logger Remote - GraphQL API",
+		"description": "GraphQL API for remote configuration and activation of the OXID Request Logger module.\n\n## Initial Setup (One-time)\n\n1. Set the `baseUrl` variable to your shop URL\n2. Get the setup token from the shop admin: Extensions → Modules → Request Logger Remote → Settings\n3. Set the `setupToken` variable to this value\n4. Set the `apiPassword` variable to your desired password (min. 8 characters)\n5. Run the \"Set API Password\" request in the Initial Setup folder\n\n## Authentication\n\n1. Use the \"Login\" request to obtain a JWT token\n2. The token is automatically saved to the `authToken` variable\n3. All other requests use this token via the `Authorization: Bearer` header",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Get Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set(\"authToken\", jsonData.data.token);",
+									"    console.log(\"Token saved to authToken variable\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Login($username: String!, $password: String!) {\n    token(username: $username, password: $password)\n}",
+								"variables": "{\n    \"username\": \"{{apiUsername}}\",\n    \"password\": \"{{apiPassword}}\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Authenticate and obtain a JWT token.\n\nThe token is automatically saved to the `authToken` collection variable for use in subsequent requests."
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for obtaining JWT tokens."
+		},
+		{
+			"name": "Initial Setup",
+			"item": [
+				{
+					"name": "Set API Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation SetPassword($token: String!, $password: String!) {\n    requestLoggerSetPassword(token: $token, password: $password)\n}",
+								"variables": "{\n    \"token\": \"{{setupToken}}\",\n    \"password\": \"{{apiPassword}}\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Set the initial password for the API user.\n\n**Prerequisites:**\n1. Get the setup token from the shop admin: Extensions → Modules → Request Logger Remote → Settings\n2. Set the `setupToken` variable to this value\n3. Set the `apiPassword` variable to the desired password (min. 8 characters)\n\n**Note:** This mutation only works once. After the password is set, the setup token is invalidated."
+					},
+					"response": []
+				}
+			],
+			"description": "One-time setup endpoints. Use these to configure the API user password before first use."
+		},
+		{
+			"name": "Settings - Queries",
+			"item": [
+				{
+					"name": "Get All Settings",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerSettings {\n        name\n        type\n        isSupported\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Get a list of all Request Logger settings with their types."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Log Level",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerLogLevel {\n        name\n        value\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Get the current log level setting (standard or detailed)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Log Frontend",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerLogFrontend {\n        name\n        value\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Get the frontend logging enabled/disabled status."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Log Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerLogAdmin {\n        name\n        value\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Get the admin logging enabled/disabled status."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Redact List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerRedact {\n        name\n        value\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Get the list of parameter names to redact (JSON-encoded array)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Redact All Values",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerRedactAllValues {\n        name\n        value\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Get the redact-all-values setting (true = redact all parameter values)."
+					},
+					"response": []
+				}
+			],
+			"description": "Query endpoints for reading Request Logger settings."
+		},
+		{
+			"name": "Settings - Mutations",
+			"item": [
+				{
+					"name": "Change Log Level",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation ChangeLogLevel($value: String!) {\n    requestLoggerLogLevelChange(value: $value) {\n        name\n        value\n    }\n}",
+								"variables": "{\n    \"value\": \"detailed\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Change the log level.\n\nValid values:\n- `standard` - Logs request data and performance\n- `detailed` - Additionally logs symbol tracking"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Log Frontend",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation ChangeLogFrontend($value: Boolean!) {\n    requestLoggerLogFrontendChange(value: $value) {\n        name\n        value\n    }\n}",
+								"variables": "{\n    \"value\": true\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Enable or disable frontend request logging."
+					},
+					"response": []
+				},
+				{
+					"name": "Change Log Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation ChangeLogAdmin($value: Boolean!) {\n    requestLoggerLogAdminChange(value: $value) {\n        name\n        value\n    }\n}",
+								"variables": "{\n    \"value\": true\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Enable or disable admin panel request logging."
+					},
+					"response": []
+				},
+				{
+					"name": "Change Redact List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation ChangeRedactList($value: String!) {\n    requestLoggerRedactChange(value: $value) {\n        name\n        value\n    }\n}",
+								"variables": "{\n    \"value\": \"[\\\"pwd\\\", \\\"lgn_pwd\\\", \\\"lgn_pwd2\\\", \\\"newPassword\\\", \\\"token\\\", \\\"apikey\\\"]\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Update the list of parameter names to redact.\n\nValue must be a JSON-encoded array of strings."
+					},
+					"response": []
+				},
+				{
+					"name": "Change Redact All Values",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation ChangeRedactAllValues($value: Boolean!) {\n    requestLoggerRedactAllValuesChange(value: $value) {\n        name\n        value\n    }\n}",
+								"variables": "{\n    \"value\": false\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Enable or disable redacting all parameter values.\n\n- `true` - Redact ALL parameter values (maximum privacy)\n- `false` - Only redact parameters in the redact list"
+					},
+					"response": []
+				}
+			],
+			"description": "Mutation endpoints for modifying Request Logger settings."
+		},
+		{
+			"name": "Module Activation",
+			"item": [
+				{
+					"name": "Check Module Active",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n    requestLoggerIsActive\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Check if the Request Logger module is currently active."
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Module",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation {\n    requestLoggerActivate\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Activate the Request Logger module."
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Module",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation {\n    requestLoggerDeactivate\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Deactivate the Request Logger module."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for checking and controlling module activation status."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://your-shop.local",
+			"type": "string"
+		},
+		{
+			"key": "setupToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "apiUsername",
+			"value": "requestlogger-api@oxid-esales.com",
+			"type": "string"
+		},
+		{
+			"key": "apiPassword",
+			"value": "your-password",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

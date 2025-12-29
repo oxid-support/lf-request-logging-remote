@@ -1,0 +1,39 @@
+services:
+    _defaults:
+        autowire: true
+        public: false
+
+    # Controllers (must be public for GraphQL schema discovery)
+    OxidSupport\RequestLoggerRemote\Controller\SettingController:
+        public: true
+
+    OxidSupport\RequestLoggerRemote\Controller\ActivationController:
+        public: true
+
+    OxidSupport\RequestLoggerRemote\Controller\PasswordController:
+        public: true
+
+    # Admin Controllers
+    # Note: Uses ContainerFactory internally for dependencies since OXID admin controllers
+    # are instantiated via oxNew() which doesn't support constructor injection
+    OxidSupport\RequestLoggerRemote\Controller\Admin\PasswordResetController:
+        public: true
+        autowire: false
+        tags:
+            - { name: 'oxid.view_controller', controller_key: 'oxsrequestloggerremote_password_reset' }
+
+    # Services
+    OxidSupport\RequestLoggerRemote\Service\SettingServiceInterface:
+        class: OxidSupport\RequestLoggerRemote\Service\SettingService
+
+    OxidSupport\RequestLoggerRemote\Service\ActivationServiceInterface:
+        class: OxidSupport\RequestLoggerRemote\Service\ActivationService
+
+    # GraphQL Namespace Mapper (for schema discovery)
+    OxidSupport\RequestLoggerRemote\Service\NamespaceMapper:
+        tags: ['graphql_namespace_mapper']
+
+    # GraphQL Permission Provider (for authorization)
+    OxidSupport\RequestLoggerRemote\Service\PermissionProvider:
+        tags: ['graphql_permission_provider']
+
