@@ -9,31 +9,29 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Service;
 
-use OxidSupport\RequestLoggerRemote\DataType\BooleanSetting;
 use OxidSupport\RequestLoggerRemote\DataType\SettingType;
-use OxidSupport\RequestLoggerRemote\DataType\StringSetting;
 
 interface SettingServiceInterface
 {
-    public function getLogLevel(): StringSetting;
+    public function getLogLevel(): string;
 
-    public function setLogLevel(string $value): StringSetting;
+    public function setLogLevel(string $value): string;
 
-    public function isLogFrontendEnabled(): BooleanSetting;
+    public function isLogFrontendEnabled(): bool;
 
-    public function setLogFrontendEnabled(bool $value): BooleanSetting;
+    public function setLogFrontendEnabled(bool $value): bool;
 
-    public function isLogAdminEnabled(): BooleanSetting;
+    public function isLogAdminEnabled(): bool;
 
-    public function setLogAdminEnabled(bool $value): BooleanSetting;
+    public function setLogAdminEnabled(bool $value): bool;
 
-    public function getRedactItems(): StringSetting;
+    public function getRedactItems(): string;
 
-    public function setRedactItems(string $jsonValue): StringSetting;
+    public function setRedactItems(string $jsonValue): string;
 
-    public function isRedactAllValuesEnabled(): BooleanSetting;
+    public function isRedactAllValuesEnabled(): bool;
 
-    public function setRedactAllValuesEnabled(bool $value): BooleanSetting;
+    public function setRedactAllValuesEnabled(bool $value): bool;
 
     /**
      * @return SettingType[]

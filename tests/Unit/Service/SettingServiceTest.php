@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Tests\Unit\Service;
 
-use OxidSupport\RequestLoggerRemote\DataType\BooleanSetting;
 use OxidSupport\RequestLoggerRemote\DataType\SettingType;
-use OxidSupport\RequestLoggerRemote\DataType\StringSetting;
 use OxidSupport\RequestLogger\Module\Module as RequestLoggerModule;
 use OxidSupport\RequestLogger\Shop\Compatibility\ModuleSettings\ModuleSettingsPort;
 use OxidSupport\RequestLoggerRemote\Exception\InvalidCollectionException;
@@ -28,7 +26,7 @@ final class SettingServiceTest extends TestCase
     private const SETTING_REDACT = RequestLoggerModule::ID . '_redact';
     private const SETTING_REDACT_ALL_VALUES = RequestLoggerModule::ID . '_redact-all-values';
 
-    public function testGetLogLevelReturnsStringSetting(): void
+    public function testGetLogLevelReturnsString(): void
     {
         $moduleSettingsPort = $this->createMock(ModuleSettingsPort::class);
         $moduleSettingsPort
@@ -39,9 +37,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->getLogLevel();
 
-        $this->assertInstanceOf(StringSetting::class, $result);
-        $this->assertSame(self::SETTING_LOG_LEVEL, $result->getName());
-        $this->assertSame('standard', $result->getValue());
+        $this->assertSame('standard', $result);
     }
 
     public function testSetLogLevelSavesAndReturnsNewValue(): void
@@ -60,11 +56,10 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->setLogLevel('detailed');
 
-        $this->assertInstanceOf(StringSetting::class, $result);
-        $this->assertSame('detailed', $result->getValue());
+        $this->assertSame('detailed', $result);
     }
 
-    public function testIsLogFrontendEnabledReturnsBooleanSetting(): void
+    public function testIsLogFrontendEnabledReturnsBool(): void
     {
         $moduleSettingsPort = $this->createMock(ModuleSettingsPort::class);
         $moduleSettingsPort
@@ -75,9 +70,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->isLogFrontendEnabled();
 
-        $this->assertInstanceOf(BooleanSetting::class, $result);
-        $this->assertSame(self::SETTING_LOG_FRONTEND, $result->getName());
-        $this->assertTrue($result->getValue());
+        $this->assertTrue($result);
     }
 
     public function testSetLogFrontendEnabledSavesAndReturnsNewValue(): void
@@ -96,11 +89,10 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->setLogFrontendEnabled(false);
 
-        $this->assertInstanceOf(BooleanSetting::class, $result);
-        $this->assertFalse($result->getValue());
+        $this->assertFalse($result);
     }
 
-    public function testIsLogAdminEnabledReturnsBooleanSetting(): void
+    public function testIsLogAdminEnabledReturnsBool(): void
     {
         $moduleSettingsPort = $this->createMock(ModuleSettingsPort::class);
         $moduleSettingsPort
@@ -111,9 +103,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->isLogAdminEnabled();
 
-        $this->assertInstanceOf(BooleanSetting::class, $result);
-        $this->assertSame(self::SETTING_LOG_ADMIN, $result->getName());
-        $this->assertFalse($result->getValue());
+        $this->assertFalse($result);
     }
 
     public function testSetLogAdminEnabledSavesAndReturnsNewValue(): void
@@ -132,11 +122,10 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->setLogAdminEnabled(true);
 
-        $this->assertInstanceOf(BooleanSetting::class, $result);
-        $this->assertTrue($result->getValue());
+        $this->assertTrue($result);
     }
 
-    public function testGetRedactItemsReturnsJsonEncodedStringSetting(): void
+    public function testGetRedactItemsReturnsJsonEncodedString(): void
     {
         $items = ['password', 'secret', 'token'];
 
@@ -149,9 +138,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->getRedactItems();
 
-        $this->assertInstanceOf(StringSetting::class, $result);
-        $this->assertSame(self::SETTING_REDACT, $result->getName());
-        $this->assertSame('["password","secret","token"]', $result->getValue());
+        $this->assertSame('["password","secret","token"]', $result);
     }
 
     public function testSetRedactItemsDecodesJsonAndSaves(): void
@@ -173,8 +160,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->setRedactItems($jsonValue);
 
-        $this->assertInstanceOf(StringSetting::class, $result);
-        $this->assertSame($jsonValue, $result->getValue());
+        $this->assertSame($jsonValue, $result);
     }
 
     public function testSetRedactItemsThrowsExceptionForInvalidJson(): void
@@ -205,7 +191,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->setRedactItems($jsonValue);
 
-        $this->assertInstanceOf(StringSetting::class, $result);
+        $this->assertIsString($result);
     }
 
     public function testSetRedactItemsThrowsExceptionForJsonString(): void
@@ -216,7 +202,7 @@ final class SettingServiceTest extends TestCase
         $this->getSut()->setRedactItems('"just a string"');
     }
 
-    public function testIsRedactAllValuesEnabledReturnsBooleanSetting(): void
+    public function testIsRedactAllValuesEnabledReturnsBool(): void
     {
         $moduleSettingsPort = $this->createMock(ModuleSettingsPort::class);
         $moduleSettingsPort
@@ -227,9 +213,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->isRedactAllValuesEnabled();
 
-        $this->assertInstanceOf(BooleanSetting::class, $result);
-        $this->assertSame(self::SETTING_REDACT_ALL_VALUES, $result->getName());
-        $this->assertFalse($result->getValue());
+        $this->assertFalse($result);
     }
 
     public function testSetRedactAllValuesEnabledSavesAndReturnsNewValue(): void
@@ -248,8 +232,7 @@ final class SettingServiceTest extends TestCase
 
         $result = $this->getSut(moduleSettingsPort: $moduleSettingsPort)->setRedactAllValuesEnabled(true);
 
-        $this->assertInstanceOf(BooleanSetting::class, $result);
-        $this->assertTrue($result->getValue());
+        $this->assertTrue($result);
     }
 
     public function testGetAllSettingsReturnsAllSettingTypes(): void

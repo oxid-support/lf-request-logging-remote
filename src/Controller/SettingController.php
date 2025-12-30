@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Controller;
 
-use OxidSupport\RequestLoggerRemote\DataType\BooleanSetting;
 use OxidSupport\RequestLoggerRemote\DataType\SettingType;
-use OxidSupport\RequestLoggerRemote\DataType\StringSetting;
 use OxidSupport\RequestLoggerRemote\Service\SettingServiceInterface;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
@@ -44,7 +42,7 @@ final class SettingController
     #[Query]
     #[Logged]
     #[Right('REQUEST_LOGGER_VIEW')]
-    public function requestLoggerLogLevel(): StringSetting
+    public function requestLoggerLogLevel(): string
     {
         return $this->settingService->getLogLevel();
     }
@@ -55,7 +53,7 @@ final class SettingController
     #[Query]
     #[Logged]
     #[Right('REQUEST_LOGGER_VIEW')]
-    public function requestLoggerLogFrontend(): BooleanSetting
+    public function requestLoggerLogFrontend(): bool
     {
         return $this->settingService->isLogFrontendEnabled();
     }
@@ -66,7 +64,7 @@ final class SettingController
     #[Query]
     #[Logged]
     #[Right('REQUEST_LOGGER_VIEW')]
-    public function requestLoggerLogAdmin(): BooleanSetting
+    public function requestLoggerLogAdmin(): bool
     {
         return $this->settingService->isLogAdminEnabled();
     }
@@ -77,7 +75,7 @@ final class SettingController
     #[Query]
     #[Logged]
     #[Right('REQUEST_LOGGER_VIEW')]
-    public function requestLoggerRedact(): StringSetting
+    public function requestLoggerRedact(): string
     {
         return $this->settingService->getRedactItems();
     }
@@ -88,7 +86,7 @@ final class SettingController
     #[Query]
     #[Logged]
     #[Right('REQUEST_LOGGER_VIEW')]
-    public function requestLoggerRedactAllValues(): BooleanSetting
+    public function requestLoggerRedactAllValues(): bool
     {
         return $this->settingService->isRedactAllValuesEnabled();
     }
@@ -99,7 +97,7 @@ final class SettingController
     #[Mutation]
     #[Logged]
     #[Right('REQUEST_LOGGER_CHANGE')]
-    public function requestLoggerLogLevelChange(string $value): StringSetting
+    public function requestLoggerLogLevelChange(string $value): string
     {
         return $this->settingService->setLogLevel($value);
     }
@@ -110,7 +108,7 @@ final class SettingController
     #[Mutation]
     #[Logged]
     #[Right('REQUEST_LOGGER_CHANGE')]
-    public function requestLoggerLogFrontendChange(bool $value): BooleanSetting
+    public function requestLoggerLogFrontendChange(bool $value): bool
     {
         return $this->settingService->setLogFrontendEnabled($value);
     }
@@ -121,7 +119,7 @@ final class SettingController
     #[Mutation]
     #[Logged]
     #[Right('REQUEST_LOGGER_CHANGE')]
-    public function requestLoggerLogAdminChange(bool $value): BooleanSetting
+    public function requestLoggerLogAdminChange(bool $value): bool
     {
         return $this->settingService->setLogAdminEnabled($value);
     }
@@ -132,7 +130,7 @@ final class SettingController
     #[Mutation]
     #[Logged]
     #[Right('REQUEST_LOGGER_CHANGE')]
-    public function requestLoggerRedactChange(string $value): StringSetting
+    public function requestLoggerRedactChange(string $value): string
     {
         return $this->settingService->setRedactItems($value);
     }
@@ -143,7 +141,7 @@ final class SettingController
     #[Mutation]
     #[Logged]
     #[Right('REQUEST_LOGGER_CHANGE')]
-    public function requestLoggerRedactAllValuesChange(bool $value): BooleanSetting
+    public function requestLoggerRedactAllValuesChange(bool $value): bool
     {
         return $this->settingService->setRedactAllValuesEnabled($value);
     }

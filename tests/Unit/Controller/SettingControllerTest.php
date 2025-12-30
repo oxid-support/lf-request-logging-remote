@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Tests\Unit\Controller;
 
-use OxidSupport\RequestLoggerRemote\DataType\BooleanSetting;
 use OxidSupport\RequestLoggerRemote\DataType\SettingType;
-use OxidSupport\RequestLoggerRemote\DataType\StringSetting;
 use OxidSupport\RequestLoggerRemote\Controller\SettingController;
 use OxidSupport\RequestLoggerRemote\Service\SettingServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -38,160 +36,141 @@ final class SettingControllerTest extends TestCase
         $this->assertSame($expectedSettings, $result);
     }
 
-    public function testRequestLoggerLogLevelReturnsStringSetting(): void
+    public function testRequestLoggerLogLevelReturnsString(): void
     {
-        $expectedSetting = new StringSetting('oxsrequestlogger_log-level', 'standard');
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('getLogLevel')
-            ->willReturn($expectedSetting);
+            ->willReturn('standard');
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerLogLevel();
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertSame('standard', $result);
     }
 
-    public function testRequestLoggerLogFrontendReturnsBooleanSetting(): void
+    public function testRequestLoggerLogFrontendReturnsBool(): void
     {
-        $expectedSetting = new BooleanSetting('oxsrequestlogger_log-frontend', true);
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('isLogFrontendEnabled')
-            ->willReturn($expectedSetting);
+            ->willReturn(true);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerLogFrontend();
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertTrue($result);
     }
 
-    public function testRequestLoggerLogAdminReturnsBooleanSetting(): void
+    public function testRequestLoggerLogAdminReturnsBool(): void
     {
-        $expectedSetting = new BooleanSetting('oxsrequestlogger_log-admin', false);
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('isLogAdminEnabled')
-            ->willReturn($expectedSetting);
+            ->willReturn(false);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerLogAdmin();
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertFalse($result);
     }
 
-    public function testRequestLoggerRedactReturnsStringSetting(): void
+    public function testRequestLoggerRedactReturnsString(): void
     {
-        $expectedSetting = new StringSetting('oxsrequestlogger_redact', '["password","secret"]');
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('getRedactItems')
-            ->willReturn($expectedSetting);
+            ->willReturn('["password","secret"]');
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerRedact();
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertSame('["password","secret"]', $result);
     }
 
-    public function testRequestLoggerRedactAllValuesReturnsBooleanSetting(): void
+    public function testRequestLoggerRedactAllValuesReturnsBool(): void
     {
-        $expectedSetting = new BooleanSetting('oxsrequestlogger_redact-all-values', false);
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('isRedactAllValuesEnabled')
-            ->willReturn($expectedSetting);
+            ->willReturn(false);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerRedactAllValues();
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertFalse($result);
     }
 
     public function testRequestLoggerLogLevelChangeCallsServiceAndReturnsResult(): void
     {
-        $expectedSetting = new StringSetting('oxsrequestlogger_log-level', 'detailed');
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('setLogLevel')
             ->with('detailed')
-            ->willReturn($expectedSetting);
+            ->willReturn('detailed');
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerLogLevelChange('detailed');
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertSame('detailed', $result);
     }
 
     public function testRequestLoggerLogFrontendChangeCallsServiceAndReturnsResult(): void
     {
-        $expectedSetting = new BooleanSetting('oxsrequestlogger_log-frontend', true);
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('setLogFrontendEnabled')
             ->with(true)
-            ->willReturn($expectedSetting);
+            ->willReturn(true);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerLogFrontendChange(true);
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertTrue($result);
     }
 
     public function testRequestLoggerLogAdminChangeCallsServiceAndReturnsResult(): void
     {
-        $expectedSetting = new BooleanSetting('oxsrequestlogger_log-admin', false);
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('setLogAdminEnabled')
             ->with(false)
-            ->willReturn($expectedSetting);
+            ->willReturn(false);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerLogAdminChange(false);
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertFalse($result);
     }
 
     public function testRequestLoggerRedactChangeCallsServiceAndReturnsResult(): void
     {
         $jsonValue = '["password","token"]';
-        $expectedSetting = new StringSetting('oxsrequestlogger_redact', $jsonValue);
 
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('setRedactItems')
             ->with($jsonValue)
-            ->willReturn($expectedSetting);
+            ->willReturn($jsonValue);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerRedactChange($jsonValue);
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertSame($jsonValue, $result);
     }
 
     public function testRequestLoggerRedactAllValuesChangeCallsServiceAndReturnsResult(): void
     {
-        $expectedSetting = new BooleanSetting('oxsrequestlogger_redact-all-values', true);
-
         $settingService = $this->createMock(SettingServiceInterface::class);
         $settingService
             ->expects($this->once())
             ->method('setRedactAllValuesEnabled')
             ->with(true)
-            ->willReturn($expectedSetting);
+            ->willReturn(true);
 
         $result = $this->getSut(settingService: $settingService)->requestLoggerRedactAllValuesChange(true);
 
-        $this->assertSame($expectedSetting, $result);
+        $this->assertTrue($result);
     }
 
     private function getSut(

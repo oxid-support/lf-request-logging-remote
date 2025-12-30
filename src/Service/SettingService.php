@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Service;
 
-use OxidSupport\RequestLoggerRemote\DataType\BooleanSetting;
 use OxidSupport\RequestLoggerRemote\DataType\SettingType;
-use OxidSupport\RequestLoggerRemote\DataType\StringSetting;
 use OxidSupport\RequestLogger\Module\Module as RequestLoggerModule;
 use OxidSupport\RequestLogger\Shop\Compatibility\ModuleSettings\ModuleSettingsPort;
 use OxidSupport\RequestLoggerRemote\Exception\InvalidCollectionException;
@@ -37,62 +35,50 @@ final readonly class SettingService implements SettingServiceInterface
     ) {
     }
 
-    public function getLogLevel(): StringSetting
+    public function getLogLevel(): string
     {
-        return new StringSetting(
-            self::SETTING_LOG_LEVEL,
-            $this->moduleSettingsPort->getString(self::SETTING_LOG_LEVEL, RequestLoggerModule::ID)
-        );
+        return $this->moduleSettingsPort->getString(self::SETTING_LOG_LEVEL, RequestLoggerModule::ID);
     }
 
-    public function setLogLevel(string $value): StringSetting
+    public function setLogLevel(string $value): string
     {
         $this->moduleSettingsPort->saveString(self::SETTING_LOG_LEVEL, $value, RequestLoggerModule::ID);
 
         return $this->getLogLevel();
     }
 
-    public function isLogFrontendEnabled(): BooleanSetting
+    public function isLogFrontendEnabled(): bool
     {
-        return new BooleanSetting(
-            self::SETTING_LOG_FRONTEND,
-            $this->moduleSettingsPort->getBoolean(self::SETTING_LOG_FRONTEND, RequestLoggerModule::ID)
-        );
+        return $this->moduleSettingsPort->getBoolean(self::SETTING_LOG_FRONTEND, RequestLoggerModule::ID);
     }
 
-    public function setLogFrontendEnabled(bool $value): BooleanSetting
+    public function setLogFrontendEnabled(bool $value): bool
     {
         $this->moduleSettingsPort->saveBoolean(self::SETTING_LOG_FRONTEND, $value, RequestLoggerModule::ID);
 
         return $this->isLogFrontendEnabled();
     }
 
-    public function isLogAdminEnabled(): BooleanSetting
+    public function isLogAdminEnabled(): bool
     {
-        return new BooleanSetting(
-            self::SETTING_LOG_ADMIN,
-            $this->moduleSettingsPort->getBoolean(self::SETTING_LOG_ADMIN, RequestLoggerModule::ID)
-        );
+        return $this->moduleSettingsPort->getBoolean(self::SETTING_LOG_ADMIN, RequestLoggerModule::ID);
     }
 
-    public function setLogAdminEnabled(bool $value): BooleanSetting
+    public function setLogAdminEnabled(bool $value): bool
     {
         $this->moduleSettingsPort->saveBoolean(self::SETTING_LOG_ADMIN, $value, RequestLoggerModule::ID);
 
         return $this->isLogAdminEnabled();
     }
 
-    public function getRedactItems(): StringSetting
+    public function getRedactItems(): string
     {
         $items = $this->moduleSettingsPort->getCollection(self::SETTING_REDACT, RequestLoggerModule::ID);
 
-        return new StringSetting(
-            self::SETTING_REDACT,
-            json_encode($items, JSON_THROW_ON_ERROR)
-        );
+        return json_encode($items, JSON_THROW_ON_ERROR);
     }
 
-    public function setRedactItems(string $jsonValue): StringSetting
+    public function setRedactItems(string $jsonValue): string
     {
         $items = json_decode($jsonValue, true);
 
@@ -105,15 +91,12 @@ final readonly class SettingService implements SettingServiceInterface
         return $this->getRedactItems();
     }
 
-    public function isRedactAllValuesEnabled(): BooleanSetting
+    public function isRedactAllValuesEnabled(): bool
     {
-        return new BooleanSetting(
-            self::SETTING_REDACT_ALL_VALUES,
-            $this->moduleSettingsPort->getBoolean(self::SETTING_REDACT_ALL_VALUES, RequestLoggerModule::ID)
-        );
+        return $this->moduleSettingsPort->getBoolean(self::SETTING_REDACT_ALL_VALUES, RequestLoggerModule::ID);
     }
 
-    public function setRedactAllValuesEnabled(bool $value): BooleanSetting
+    public function setRedactAllValuesEnabled(bool $value): bool
     {
         $this->moduleSettingsPort->saveBoolean(self::SETTING_REDACT_ALL_VALUES, $value, RequestLoggerModule::ID);
 
