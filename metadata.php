@@ -20,12 +20,16 @@ Provides queries and mutations to manage request logger settings and module acti
     'author' => 'OXID Support',
     'email' => 'support@oxid-esales.com',
     'url' => 'https://oxid-esales.com',
+    'extend' => [
+        \OxidEsales\Eshop\Application\Controller\Admin\ModuleConfiguration::class =>
+            \OxidSupport\RequestLoggerRemote\Controller\Admin\ModuleConfigController::class,
+    ],
     'events' => [
         'onActivate' => \OxidSupport\RequestLoggerRemote\Core\ModuleEvents::class . '::onActivate',
     ],
     'settings' => [
         [
-            'group' => 'oxsrequestloggerremote_main',
+            'group' => '',
             'name'  => Module::SETTING_SETUP_TOKEN,
             'type'  => 'str',
             'value' => '',

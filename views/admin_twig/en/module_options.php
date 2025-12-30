@@ -3,16 +3,15 @@
 $aLang = [
     'charset' => 'UTF-8',
 
-    // Settings
-    'SHOP_MODULE_GROUP_oxsrequestloggerremote_main' => 'Remote Access Setup',
-    'SHOP_MODULE_oxsrequestloggerremote_SetupToken' => 'Setup Token (click to copy)',
-    'HELP_SHOP_MODULE_oxsrequestloggerremote_SetupToken' => 'One-time token for setting the API user password remotely. The token becomes invalid after the password has been set.',
+    // Migration warning
+    'OXSREQUESTLOGGERREMOTE_MIGRATION_REQUIRED_TEXT' => 'The database migrations have not been executed yet. Please run the following command:',
 
     // Setup workflow
     'OXSREQUESTLOGGERREMOTE_SETUP_TITLE' => 'Setup Workflow',
     'OXSREQUESTLOGGERREMOTE_SETUP_STEP_INSTALL' => 'Module installed',
     'OXSREQUESTLOGGERREMOTE_SETUP_STEP_MIGRATE' => 'Migrations executed',
     'OXSREQUESTLOGGERREMOTE_SETUP_STEP_ACTIVATE' => 'Module activated',
+    'OXSREQUESTLOGGERREMOTE_SETUP_STEP_ACTIVATE_WARNING' => 'Module was activated without executing migrations first. Please deactivate, run migrations, and activate again.',
     'OXSREQUESTLOGGERREMOTE_SETUP_STEP_SEND_TOKEN' => 'Send setup token to OXID Support',
     'OXSREQUESTLOGGERREMOTE_SETUP_STEP_SEND_TOKEN_DESC' => 'Copy the token below and send it via email to support@oxid-esales.com',
     'OXSREQUESTLOGGERREMOTE_SETUP_STEP_WAIT_SUPPORT' => 'Wait for OXID Support to activate API access',

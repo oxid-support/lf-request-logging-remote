@@ -9,9 +9,9 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Service;
 
-use OxidEsales\GraphQL\ConfigurationAccess\Shared\DataType\BooleanSetting;
-use OxidEsales\GraphQL\ConfigurationAccess\Shared\DataType\SettingType;
-use OxidEsales\GraphQL\ConfigurationAccess\Shared\DataType\StringSetting;
+use OxidSupport\RequestLoggerRemote\DataType\BooleanSetting;
+use OxidSupport\RequestLoggerRemote\DataType\SettingType;
+use OxidSupport\RequestLoggerRemote\DataType\StringSetting;
 use OxidSupport\RequestLogger\Module\Module as RequestLoggerModule;
 use OxidSupport\RequestLogger\Shop\Compatibility\ModuleSettings\ModuleSettingsPort;
 use OxidSupport\RequestLoggerRemote\Exception\InvalidCollectionException;

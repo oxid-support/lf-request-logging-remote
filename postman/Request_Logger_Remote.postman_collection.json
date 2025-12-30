@@ -86,12 +86,46 @@
 								"graphql"
 							]
 						},
-						"description": "Set the initial password for the API user.\n\n**Prerequisites:**\n1. Get the setup token from the shop admin: Extensions → Modules → Request Logger Remote → Settings\n2. Set the `setupToken` variable to this value\n3. Set the `apiPassword` variable to the desired password (min. 8 characters)\n\n**Note:** This mutation only works once. After the password is set, the setup token is invalidated."
+						"description": "Set the password for the API user.\n\n**Prerequisites:**\n1. Get the setup token from the shop admin: Extensions → Modules → Request Logger Remote → Settings\n2. Set the `setupToken` variable to this value\n3. Set the `apiPassword` variable to the desired password (min. 8 characters)\n\n**Note:** The token is invalidated after the password is set. Use 'Reset API Password' to generate a new token if needed."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset API Password (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation {\n    requestLoggerResetPassword\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						},
+						"description": "Reset the API user password and generate a new setup token.\n\n**Requires:** Admin authentication (oxidadmin group)\n\n**Use case:** If the password was compromised or needs to be changed.\n\n**Actions:**\n1. Invalidates the current password immediately\n2. Returns a new setup token\n3. Customer must send new token to Support\n\n**Response:** Returns the new setup token as a string."
 					},
 					"response": []
 				}
 			],
-			"description": "One-time setup endpoints. Use these to configure the API user password before first use."
+			"description": "Setup and password management endpoints."
 		},
 		{
 			"name": "Settings - Queries",

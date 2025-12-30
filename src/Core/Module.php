@@ -14,4 +14,6 @@ final class Module
     public const MODULE_ID = 'oxsrequestloggerremote';
 
     public const SETTING_SETUP_TOKEN = 'oxsrequestloggerremote_SetupToken';
+
+    public const API_USER_EMAIL = 'requestlogger-api@oxid-esales.com';
 }

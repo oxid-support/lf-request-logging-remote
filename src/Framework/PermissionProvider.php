@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-namespace OxidSupport\RequestLoggerRemote\Service;
+namespace OxidSupport\RequestLoggerRemote\Framework;
 
 use OxidEsales\GraphQL\Base\Framework\PermissionProviderInterface;
 

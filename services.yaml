@@ -29,11 +29,19 @@ services:
     OxidSupport\RequestLoggerRemote\Service\ActivationServiceInterface:
         class: OxidSupport\RequestLoggerRemote\Service\ActivationService
 
+    OxidSupport\RequestLoggerRemote\Service\SetupStatusServiceInterface:
+        class: OxidSupport\RequestLoggerRemote\Service\SetupStatusService
+        public: true
+
+    OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface:
+        class: OxidSupport\RequestLoggerRemote\Service\ApiUserService
+        public: true
+
     # GraphQL Namespace Mapper (for schema discovery)
-    OxidSupport\RequestLoggerRemote\Service\NamespaceMapper:
+    OxidSupport\RequestLoggerRemote\Framework\NamespaceMapper:
         tags: ['graphql_namespace_mapper']
 
     # GraphQL Permission Provider (for authorization)
-    OxidSupport\RequestLoggerRemote\Service\PermissionProvider:
+    OxidSupport\RequestLoggerRemote\Framework\PermissionProvider:
         tags: ['graphql_permission_provider']
 

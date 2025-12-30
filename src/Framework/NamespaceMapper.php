@@ -7,11 +7,11 @@
 
 declare(strict_types=1);
 
-namespace OxidSupport\RequestLoggerRemote\Service;
+namespace OxidSupport\RequestLoggerRemote\Framework;
 
 use OxidEsales\GraphQL\Base\Framework\NamespaceMapperInterface;
 
-class NamespaceMapper implements NamespaceMapperInterface
+final class NamespaceMapper implements NamespaceMapperInterface
 {
     public function getControllerNamespaceMapping(): array
     {
@@ -24,7 +24,8 @@ class NamespaceMapper implements NamespaceMapperInterface
 
     public function getTypeNamespaceMapping(): array
     {
-        // We reuse DataTypes from graphql-configuration-access module
-        return [];
+        return [
+            'OxidSupport\\RequestLoggerRemote\\DataType' => __DIR__ . '/../DataType/',
+        ];
     }
 }

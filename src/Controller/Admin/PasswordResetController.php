@@ -13,9 +13,9 @@ use OxidEsales\Eshop\Application\Controller\Admin\AdminController;
 use OxidEsales\Eshop\Application\Model\User;
 use OxidEsales\Eshop\Core\Registry;
 use OxidEsales\EshopCommunity\Internal\Container\ContainerFactory;
-use OxidEsales\EshopCommunity\Internal\Framework\Database\QueryBuilderFactoryInterface;
 use OxidEsales\EshopCommunity\Internal\Framework\Module\Facade\ModuleSettingServiceInterface;
 use OxidSupport\RequestLoggerRemote\Core\Module;
+use OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface;
 
 /**
  * Admin controller for password reset functionality.
@@ -23,11 +23,9 @@ use OxidSupport\RequestLoggerRemote\Core\Module;
  */
 final class PasswordResetController extends AdminController
 {
-    private const USER_ID = 'oxsrequestlogger_api_user';
-
-    private function getQueryBuilderFactory(): QueryBuilderFactoryInterface
+    private function getApiUserService(): ApiUserServiceInterface
     {
-        return ContainerFactory::getInstance()->getContainer()->get(QueryBuilderFactoryInterface::class);
+        return ContainerFactory::getInstance()->getContainer()->get(ApiUserServiceInterface::class);
     }
 
     private function getModuleSettingService(): ModuleSettingServiceInterface
@@ -40,19 +38,15 @@ final class PasswordResetController extends AdminController
      */
     public function resetPassword(): void
     {
-        $userId = md5(self::USER_ID);
-
         /** @var User $user */
         $user = oxNew(User::class);
 
-        if (!$user->load($userId)) {
+        if (!$this->getApiUserService()->loadApiUser($user)) {
             $this->redirectWithError('USER_NOT_FOUND');
             return;
         }
 
-        // Reset password to a placeholder (random hex string)
-        $placeholder = bin2hex(random_bytes(32));
-        $this->setPasswordPlaceholder($userId, $placeholder);
+        $this->getApiUserService()->resetPassword($user->getId());
 
         // Generate new setup token
         $token = Registry::getUtilsObject()->generateUId();
@@ -60,21 +54,6 @@ final class PasswordResetController extends AdminController
 
         // Pass token via URL parameter to display once
         $this->redirectWithSuccess($token);
-    }
-
-    private function setPasswordPlaceholder(string $userId, string $placeholder): void
-    {
-        $queryBuilder = $this->getQueryBuilderFactory()->create();
-        $queryBuilder
-            ->update('oxuser')
-            ->set('OXPASSWORD', ':placeholder')
-            ->set('OXPASSSALT', ':salt')
-            ->where('OXID = :userId')
-            ->setParameter('placeholder', $placeholder)
-            ->setParameter('salt', '')
-            ->setParameter('userId', $userId);
-
-        $queryBuilder->execute();
     }
 
     private function redirectWithSuccess(string $newToken): void

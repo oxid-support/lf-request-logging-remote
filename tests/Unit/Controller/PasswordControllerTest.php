@@ -9,15 +9,14 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Tests\Unit\Controller;
 
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Result;
-use OxidEsales\EshopCommunity\Internal\Framework\Database\QueryBuilderFactoryInterface;
+use OxidEsales\Eshop\Application\Model\User;
 use OxidEsales\EshopCommunity\Internal\Framework\Module\Facade\ModuleSettingServiceInterface;
 use OxidSupport\RequestLoggerRemote\Controller\PasswordController;
 use OxidSupport\RequestLoggerRemote\Core\Module;
 use OxidSupport\RequestLoggerRemote\Exception\InvalidTokenException;
-use OxidSupport\RequestLoggerRemote\Exception\PasswordAlreadySetException;
 use OxidSupport\RequestLoggerRemote\Exception\PasswordTooShortException;
+use OxidSupport\RequestLoggerRemote\Exception\UserNotFoundException;
+use OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\String\UnicodeString;
@@ -100,7 +99,15 @@ final class PasswordControllerTest extends TestCase
             ->requestLoggerSetPassword('valid-token', '1234567');
     }
 
-    public function testThrowsPasswordAlreadySetExceptionWhenPasswordIsNotPlaceholder(): void
+    /**
+     * Note: Tests for user loading and password setting cannot be fully unit tested
+     * because they use oxNew(User::class) which requires the OXID framework.
+     * Integration/acceptance tests should cover this functionality.
+     *
+     * This test documents that password validation passes for 8+ character passwords
+     * before reaching the OXID framework dependency.
+     */
+    public function testAcceptsPasswordWithExactly8CharactersBeforeOxidFramework(): void
     {
         $moduleSettingService = $this->createMock(ModuleSettingServiceInterface::class);
         $moduleSettingService
@@ -109,37 +116,36 @@ final class PasswordControllerTest extends TestCase
             ->with(Module::SETTING_SETUP_TOKEN, Module::MODULE_ID)
             ->willReturn(new UnicodeString('valid-token'));
 
-        $result = $this->createMock(Result::class);
-        $result->expects($this->once())
-            ->method('fetchOne')
-            ->willReturn('$2y$10$someBcryptHash');
-
-        $queryBuilder = $this->createMock(QueryBuilder::class);
-        $queryBuilder->expects($this->once())->method('select')->willReturnSelf();
-        $queryBuilder->expects($this->once())->method('from')->willReturnSelf();
-        $queryBuilder->expects($this->once())->method('where')->willReturnSelf();
-        $queryBuilder->expects($this->once())->method('setParameter')->willReturnSelf();
-        $queryBuilder->expects($this->once())->method('execute')->willReturn($result);
-
-        $queryBuilderFactory = $this->createMock(QueryBuilderFactoryInterface::class);
-        $queryBuilderFactory
-            ->expects($this->once())
-            ->method('create')
-            ->willReturn($queryBuilder);
-
-        $this->expectException(PasswordAlreadySetException::class);
+        // The test passes password validation (8 chars) but fails at oxNew
+        $this->expectException(\Error::class);
+        $this->expectExceptionMessage('oxNew');
 
         $this->getSut(
-            queryBuilderFactory: $queryBuilderFactory,
+            moduleSettingService: $moduleSettingService,
+        )->requestLoggerSetPassword('valid-token', '12345678');
+    }
+
+    /**
+     * This test documents that the set password mutation requires the OXID framework
+     * for creating the User object and cannot be unit tested without it.
+     */
+    public function testSetPasswordRequiresOxidFrameworkForUserCreation(): void
+    {
+        $moduleSettingService = $this->createMock(ModuleSettingServiceInterface::class);
+        $moduleSettingService
+            ->expects($this->once())
+            ->method('getString')
+            ->with(Module::SETTING_SETUP_TOKEN, Module::MODULE_ID)
+            ->willReturn(new UnicodeString('valid-token'));
+
+        $this->expectException(\Error::class);
+        $this->expectExceptionMessage('oxNew');
+
+        $this->getSut(
             moduleSettingService: $moduleSettingService,
         )->requestLoggerSetPassword('valid-token', 'password123');
     }
 
-    /**
-     * Note: The requestLoggerResetPassword mutation cannot be fully unit tested
-     * because it uses oxNew(User::class) which requires the OXID framework.
-     * Integration/acceptance tests should cover this functionality.
-     */
     public function testResetPasswordRequiresOxidFramework(): void
     {
         // This test documents that the reset password mutation requires the OXID framework
@@ -152,11 +158,11 @@ final class PasswordControllerTest extends TestCase
     }
 
     private function getSut(
-        ?QueryBuilderFactoryInterface $queryBuilderFactory = null,
+        ?ApiUserServiceInterface $apiUserService = null,
         ?ModuleSettingServiceInterface $moduleSettingService = null,
     ): PasswordController {
         return new PasswordController(
-            queryBuilderFactory: $queryBuilderFactory ?? $this->createStub(QueryBuilderFactoryInterface::class),
+            apiUserService: $apiUserService ?? $this->createStub(ApiUserServiceInterface::class),
             moduleSettingService: $moduleSettingService ?? $this->createStub(ModuleSettingServiceInterface::class),
         );
     }
