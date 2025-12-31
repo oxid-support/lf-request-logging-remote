@@ -31,8 +31,12 @@ final readonly class ActivationService implements ActivationServiceInterface
         try {
             $this->moduleActivationBridge->activate(RequestLoggerModule::ID, $shopId);
         } catch (Exception $exception) {
+            // Security: Don't expose internal error details to API consumers
+            // Log the actual error internally for debugging
+            error_log('Module activation failed: ' . $exception->getMessage());
+
             throw new ModuleActivationException(
-                'Failed to activate module: ' . $exception->getMessage(),
+                'Failed to activate module',
                 0,
                 $exception
             );
@@ -48,8 +52,12 @@ final readonly class ActivationService implements ActivationServiceInterface
         try {
             $this->moduleActivationBridge->deactivate(RequestLoggerModule::ID, $shopId);
         } catch (Exception $exception) {
+            // Security: Don't expose internal error details to API consumers
+            // Log the actual error internally for debugging
+            error_log('Module deactivation failed: ' . $exception->getMessage());
+
             throw new ModuleDeactivationException(
-                'Failed to deactivate module: ' . $exception->getMessage(),
+                'Failed to deactivate module',
                 0,
                 $exception
             );

@@ -86,6 +86,12 @@ final readonly class SettingService implements SettingServiceInterface
             throw new InvalidCollectionException('Invalid JSON array provided for redact items');
         }
 
+        // Security: Ensure it's a sequential array (list), not an associative array (object)
+        // This prevents prototype pollution and arbitrary key injection attacks
+        if (!array_is_list($items)) {
+            throw new InvalidCollectionException('Invalid JSON array provided for redact items - must be a list, not an object');
+        }
+
         $this->moduleSettingsPort->saveCollection(self::SETTING_REDACT, $items, RequestLoggerModule::ID);
 
         return $this->getRedactItems();

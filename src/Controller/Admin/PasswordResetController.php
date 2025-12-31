@@ -10,12 +10,13 @@ declare(strict_types=1);
 namespace OxidSupport\RequestLoggerRemote\Controller\Admin;
 
 use OxidEsales\Eshop\Application\Controller\Admin\AdminController;
-use OxidEsales\Eshop\Application\Model\User;
-use OxidEsales\Eshop\Core\Registry;
 use OxidEsales\EshopCommunity\Internal\Container\ContainerFactory;
 use OxidEsales\EshopCommunity\Internal\Framework\Module\Facade\ModuleSettingServiceInterface;
 use OxidSupport\RequestLoggerRemote\Core\Module;
+use OxidSupport\RequestLoggerRemote\Exception\UserNotFoundException;
+use OxidSupport\RequestLoggerRemote\Service\Admin\RedirectServiceInterface;
 use OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface;
+use OxidSupport\RequestLoggerRemote\Service\TokenGeneratorInterface;
 
 /**
  * Admin controller for password reset functionality.
@@ -23,60 +24,80 @@ use OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface;
  */
 final class PasswordResetController extends AdminController
 {
-    private function getApiUserService(): ApiUserServiceInterface
-    {
-        return ContainerFactory::getInstance()->getContainer()->get(ApiUserServiceInterface::class);
-    }
-
-    private function getModuleSettingService(): ModuleSettingServiceInterface
-    {
-        return ContainerFactory::getInstance()->getContainer()->get(ModuleSettingServiceInterface::class);
-    }
+    private ?ApiUserServiceInterface $apiUserService = null;
+    private ?ModuleSettingServiceInterface $moduleSettingService = null;
+    private ?TokenGeneratorInterface $tokenGenerator = null;
+    private ?RedirectServiceInterface $redirectService = null;
 
     /**
      * Resets the API user password to a placeholder and generates a new setup token.
      */
     public function resetPassword(): void
     {
-        /** @var User $user */
-        $user = oxNew(User::class);
+        try {
+            // Generate new setup token
+            $token = $this->getTokenGenerator()->generate();
 
-        if (!$this->getApiUserService()->loadApiUser($user)) {
-            $this->redirectWithError('USER_NOT_FOUND');
-            return;
+            // Reset password via service
+            $this->getApiUserService()->resetPasswordForApiUser();
+
+            // Save token
+            $this->getModuleSettingService()->saveString(
+                Module::SETTING_SETUP_TOKEN,
+                $token,
+                Module::MODULE_ID
+            );
+
+            // Redirect with success
+            $this->getRedirectService()->redirectToModuleConfig([
+                'resetSuccess' => '1',
+                'newToken' => $token
+            ]);
+        } catch (UserNotFoundException) {
+            // Redirect with error
+            $this->getRedirectService()->redirectToModuleConfig([
+                'resetError' => 'USER_NOT_FOUND'
+            ]);
         }
-
-        $this->getApiUserService()->resetPassword($user->getId());
-
-        // Generate new setup token
-        $token = Registry::getUtilsObject()->generateUId();
-        $this->getModuleSettingService()->saveString(Module::SETTING_SETUP_TOKEN, $token, Module::MODULE_ID);
-
-        // Pass token via URL parameter to display once
-        $this->redirectWithSuccess($token);
     }
 
-    private function redirectWithSuccess(string $newToken): void
+    private function getApiUserService(): ApiUserServiceInterface
     {
-        $url = $this->buildRedirectUrl(['resetSuccess' => '1', 'newToken' => $newToken]);
-        Registry::getUtils()->redirect($url, false, 302);
+        if ($this->apiUserService === null) {
+            $this->apiUserService = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(ApiUserServiceInterface::class);
+        }
+        return $this->apiUserService;
     }
 
-    private function redirectWithError(string $error): void
+    private function getModuleSettingService(): ModuleSettingServiceInterface
     {
-        $url = $this->buildRedirectUrl(['resetError' => $error]);
-        Registry::getUtils()->redirect($url, false, 302);
+        if ($this->moduleSettingService === null) {
+            $this->moduleSettingService = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(ModuleSettingServiceInterface::class);
+        }
+        return $this->moduleSettingService;
     }
 
-    private function buildRedirectUrl(array $params = []): string
+    private function getTokenGenerator(): TokenGeneratorInterface
     {
-        $baseUrl = Registry::getConfig()->getCurrentShopUrl() . 'admin/index.php';
-        $params = array_merge([
-            'cl' => 'module_config',
-            'oxid' => Module::MODULE_ID,
-            'force_sid' => Registry::getSession()->getId(),
-        ], $params);
+        if ($this->tokenGenerator === null) {
+            $this->tokenGenerator = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(TokenGeneratorInterface::class);
+        }
+        return $this->tokenGenerator;
+    }
 
-        return $baseUrl . '?' . http_build_query($params);
+    private function getRedirectService(): RedirectServiceInterface
+    {
+        if ($this->redirectService === null) {
+            $this->redirectService = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(RedirectServiceInterface::class);
+        }
+        return $this->redirectService;
     }
 }

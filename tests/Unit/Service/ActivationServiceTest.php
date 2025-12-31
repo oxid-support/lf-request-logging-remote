@@ -64,7 +64,8 @@ final class ActivationServiceTest extends TestCase
             ->willThrowException(new Exception('Activation failed'));
 
         $this->expectException(ModuleActivationException::class);
-        $this->expectExceptionMessage('Failed to activate module: Activation failed');
+        // Security: Internal error details should not be exposed in exception message
+        $this->expectExceptionMessage('Failed to activate module');
 
         $this->getSut(
             context: $context,
@@ -114,7 +115,8 @@ final class ActivationServiceTest extends TestCase
             ->willThrowException(new Exception('Deactivation failed'));
 
         $this->expectException(ModuleDeactivationException::class);
-        $this->expectExceptionMessage('Failed to deactivate module: Deactivation failed');
+        // Security: Internal error details should not be exposed in exception message
+        $this->expectExceptionMessage('Failed to deactivate module');
 
         $this->getSut(
             context: $context,

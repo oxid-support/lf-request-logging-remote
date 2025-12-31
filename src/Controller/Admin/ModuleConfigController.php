@@ -22,22 +22,26 @@ use OxidSupport\RequestLoggerRemote\Service\SetupStatusServiceInterface;
  */
 class ModuleConfigController extends ModuleConfiguration
 {
+    private ?ContextInterface $context = null;
+    private ?ShopConfigurationDaoInterface $shopConfigurationDao = null;
+    private ?SetupStatusServiceInterface $setupStatusService = null;
+
     /**
      * Check if the module is activated.
      */
     public function isModuleActivated(): bool
     {
-        if ($this->getEditObjectId() !== Module::MODULE_ID) {
+        if ($this->getCurrentModuleId() !== Module::MODULE_ID) {
             return false;
         }
 
         try {
-            $container = ContainerFactory::getInstance()->getContainer();
-            $context = $container->get(ContextInterface::class);
-            $shopConfigurationDao = $container->get(ShopConfigurationDaoInterface::class);
-            $shopConfiguration = $shopConfigurationDao->get($context->getCurrentShopId());
-
-            return $shopConfiguration->getModuleConfiguration(Module::MODULE_ID)->isActivated();
+            $shopConfiguration = $this->getShopConfigurationDao()->get(
+                $this->getContext()->getCurrentShopId()
+            );
+            return $shopConfiguration
+                ->getModuleConfiguration(Module::MODULE_ID)
+                ->isActivated();
         } catch (\Exception) {
             return false;
         }
@@ -48,16 +52,53 @@ class ModuleConfigController extends ModuleConfiguration
      */
     public function isMigrationExecuted(): bool
     {
-        if ($this->getEditObjectId() !== Module::MODULE_ID) {
+        if ($this->getCurrentModuleId() !== Module::MODULE_ID) {
             return true;
         }
 
         try {
-            $container = ContainerFactory::getInstance()->getContainer();
-            $setupStatusService = $container->get(SetupStatusServiceInterface::class);
-            return $setupStatusService->isMigrationExecuted();
+            return $this->getSetupStatusService()->isMigrationExecuted();
         } catch (\Exception) {
             return false;
         }
+    }
+
+    /**
+     * Get the current module ID from edit object.
+     * Can be overridden in tests.
+     */
+    protected function getCurrentModuleId(): string
+    {
+        return $this->getEditObjectId();
+    }
+
+    private function getContext(): ContextInterface
+    {
+        if ($this->context === null) {
+            $this->context = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(ContextInterface::class);
+        }
+        return $this->context;
+    }
+
+    private function getShopConfigurationDao(): ShopConfigurationDaoInterface
+    {
+        if ($this->shopConfigurationDao === null) {
+            $this->shopConfigurationDao = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(ShopConfigurationDaoInterface::class);
+        }
+        return $this->shopConfigurationDao;
+    }
+
+    private function getSetupStatusService(): SetupStatusServiceInterface
+    {
+        if ($this->setupStatusService === null) {
+            $this->setupStatusService = ContainerFactory::getInstance()
+                ->getContainer()
+                ->get(SetupStatusServiceInterface::class);
+        }
+        return $this->setupStatusService;
     }
 }

@@ -37,6 +37,14 @@ services:
         class: OxidSupport\RequestLoggerRemote\Service\ApiUserService
         public: true
 
+    OxidSupport\RequestLoggerRemote\Service\TokenGeneratorInterface:
+        class: OxidSupport\RequestLoggerRemote\Service\TokenGenerator
+        public: true
+
+    OxidSupport\RequestLoggerRemote\Service\Admin\RedirectServiceInterface:
+        class: OxidSupport\RequestLoggerRemote\Service\Admin\RedirectService
+        public: true
+
     # GraphQL Namespace Mapper (for schema discovery)
     OxidSupport\RequestLoggerRemote\Framework\NamespaceMapper:
         tags: ['graphql_namespace_mapper']

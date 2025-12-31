@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Tests\Unit\Controller;
 
-use OxidEsales\Eshop\Application\Model\User;
 use OxidEsales\EshopCommunity\Internal\Framework\Module\Facade\ModuleSettingServiceInterface;
 use OxidSupport\RequestLoggerRemote\Controller\PasswordController;
 use OxidSupport\RequestLoggerRemote\Core\Module;
@@ -17,6 +16,7 @@ use OxidSupport\RequestLoggerRemote\Exception\InvalidTokenException;
 use OxidSupport\RequestLoggerRemote\Exception\PasswordTooShortException;
 use OxidSupport\RequestLoggerRemote\Exception\UserNotFoundException;
 use OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface;
+use OxidSupport\RequestLoggerRemote\Service\TokenGeneratorInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\String\UnicodeString;
@@ -100,14 +100,10 @@ final class PasswordControllerTest extends TestCase
     }
 
     /**
-     * Note: Tests for user loading and password setting cannot be fully unit tested
-     * because they use oxNew(User::class) which requires the OXID framework.
-     * Integration/acceptance tests should cover this functionality.
-     *
-     * This test documents that password validation passes for 8+ character passwords
-     * before reaching the OXID framework dependency.
+     * After refactoring: setPasswordForApiUser() is now in ApiUserService,
+     * which uses oxNew internally. The controller delegates to the service.
      */
-    public function testAcceptsPasswordWithExactly8CharactersBeforeOxidFramework(): void
+    public function testSetPasswordDelegatesToService(): void
     {
         $moduleSettingService = $this->createMock(ModuleSettingServiceInterface::class);
         $moduleSettingService
@@ -116,54 +112,86 @@ final class PasswordControllerTest extends TestCase
             ->with(Module::SETTING_SETUP_TOKEN, Module::MODULE_ID)
             ->willReturn(new UnicodeString('valid-token'));
 
-        // The test passes password validation (8 chars) but fails at oxNew
-        $this->expectException(\Error::class);
-        $this->expectExceptionMessage('oxNew');
+        $apiUserService = $this->createMock(ApiUserServiceInterface::class);
+        $apiUserService
+            ->expects($this->once())
+            ->method('setPasswordForApiUser')
+            ->with('password123');
 
-        $this->getSut(
-            moduleSettingService: $moduleSettingService,
-        )->requestLoggerSetPassword('valid-token', '12345678');
+        $moduleSettingService
+            ->expects($this->once())
+            ->method('saveString')
+            ->with(Module::SETTING_SETUP_TOKEN, '', Module::MODULE_ID);
+
+        $result = $this->getSut(
+            apiUserService: $apiUserService,
+            moduleSettingService: $moduleSettingService
+        )->requestLoggerSetPassword('valid-token', 'password123');
+
+        $this->assertTrue($result);
     }
 
     /**
-     * This test documents that the set password mutation requires the OXID framework
-     * for creating the User object and cannot be unit tested without it.
+     * After refactoring: resetPasswordForApiUser() is now in ApiUserService,
+     * token generation is in TokenGeneratorInterface. Controller only orchestrates.
      */
-    public function testSetPasswordRequiresOxidFrameworkForUserCreation(): void
+    public function testResetPasswordDelegatesToServices(): void
     {
+        $tokenGenerator = $this->createMock(TokenGeneratorInterface::class);
+        $tokenGenerator
+            ->expects($this->once())
+            ->method('generate')
+            ->willReturn('generated-token-123');
+
+        $apiUserService = $this->createMock(ApiUserServiceInterface::class);
+        $apiUserService
+            ->expects($this->once())
+            ->method('resetPasswordForApiUser');
+
         $moduleSettingService = $this->createMock(ModuleSettingServiceInterface::class);
         $moduleSettingService
             ->expects($this->once())
-            ->method('getString')
-            ->with(Module::SETTING_SETUP_TOKEN, Module::MODULE_ID)
-            ->willReturn(new UnicodeString('valid-token'));
+            ->method('saveString')
+            ->with(Module::SETTING_SETUP_TOKEN, 'generated-token-123', Module::MODULE_ID);
 
-        $this->expectException(\Error::class);
-        $this->expectExceptionMessage('oxNew');
-
-        $this->getSut(
+        $result = $this->getSut(
+            apiUserService: $apiUserService,
             moduleSettingService: $moduleSettingService,
-        )->requestLoggerSetPassword('valid-token', 'password123');
+            tokenGenerator: $tokenGenerator
+        )->requestLoggerResetPassword();
+
+        $this->assertEquals('generated-token-123', $result);
     }
 
-    public function testResetPasswordRequiresOxidFramework(): void
+    public function testThrowsUserNotFoundExceptionWhenServiceThrows(): void
     {
-        // This test documents that the reset password mutation requires the OXID framework
-        // and cannot be unit tested without it.
+        $moduleSettingService = $this->createMock(ModuleSettingServiceInterface::class);
+        $moduleSettingService
+            ->method('getString')
+            ->willReturn(new UnicodeString('valid-token'));
 
-        $this->expectException(\Error::class);
-        $this->expectExceptionMessage('oxNew');
+        $apiUserService = $this->createMock(ApiUserServiceInterface::class);
+        $apiUserService
+            ->method('setPasswordForApiUser')
+            ->willThrowException(new UserNotFoundException());
 
-        $this->getSut()->requestLoggerResetPassword();
+        $this->expectException(UserNotFoundException::class);
+
+        $this->getSut(
+            apiUserService: $apiUserService,
+            moduleSettingService: $moduleSettingService
+        )->requestLoggerSetPassword('valid-token', 'password123');
     }
 
     private function getSut(
         ?ApiUserServiceInterface $apiUserService = null,
         ?ModuleSettingServiceInterface $moduleSettingService = null,
+        ?TokenGeneratorInterface $tokenGenerator = null,
     ): PasswordController {
         return new PasswordController(
             apiUserService: $apiUserService ?? $this->createStub(ApiUserServiceInterface::class),
             moduleSettingService: $moduleSettingService ?? $this->createStub(ModuleSettingServiceInterface::class),
+            tokenGenerator: $tokenGenerator ?? $this->createStub(TokenGeneratorInterface::class),
         );
     }
 }

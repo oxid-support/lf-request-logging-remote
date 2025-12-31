@@ -9,14 +9,12 @@ declare(strict_types=1);
 
 namespace OxidSupport\RequestLoggerRemote\Controller;
 
-use OxidEsales\Eshop\Application\Model\User;
-use OxidEsales\Eshop\Core\Registry;
 use OxidEsales\EshopCommunity\Internal\Framework\Module\Facade\ModuleSettingServiceInterface;
 use OxidSupport\RequestLoggerRemote\Core\Module;
 use OxidSupport\RequestLoggerRemote\Exception\InvalidTokenException;
 use OxidSupport\RequestLoggerRemote\Exception\PasswordTooShortException;
-use OxidSupport\RequestLoggerRemote\Exception\UserNotFoundException;
 use OxidSupport\RequestLoggerRemote\Service\ApiUserServiceInterface;
+use OxidSupport\RequestLoggerRemote\Service\TokenGeneratorInterface;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Right;
@@ -25,7 +23,8 @@ final class PasswordController
 {
     public function __construct(
         private ApiUserServiceInterface $apiUserService,
-        private ModuleSettingServiceInterface $moduleSettingService
+        private ModuleSettingServiceInterface $moduleSettingService,
+        private TokenGeneratorInterface $tokenGenerator
     ) {
     }
 
@@ -36,33 +35,15 @@ final class PasswordController
     #[Mutation]
     public function requestLoggerSetPassword(string $token, string $password): bool
     {
-        // Get stored token (generated during module activation)
-        try {
-            $storedToken = (string) $this->moduleSettingService->getString(Module::SETTING_SETUP_TOKEN, Module::MODULE_ID);
-        } catch (\Throwable $e) {
-            $storedToken = '';
-        }
+        $this->validateToken($token);
+        $this->validatePassword($password);
 
-        if (empty($storedToken) || $token !== $storedToken) {
-            throw new InvalidTokenException();
-        }
-
-        if (strlen($password) < 8) {
-            throw new PasswordTooShortException();
-        }
-
-        /** @var User $user */
-        $user = oxNew(User::class);
-
-        if (!$this->apiUserService->loadApiUser($user)) {
-            throw new UserNotFoundException();
-        }
-
-        $user->setPassword($password);
-        $user->save();
-
-        // Delete token after successful password set
+        // Security: Clear token BEFORE setting password to prevent race conditions (TOCTOU)
+        // This ensures a second concurrent request with the same token will fail validation
         $this->moduleSettingService->saveString(Module::SETTING_SETUP_TOKEN, '', Module::MODULE_ID);
+
+        // Delegate to service - no more oxNew() or direct User manipulation
+        $this->apiUserService->setPasswordForApiUser($password);
 
         return true;
     }
@@ -77,19 +58,40 @@ final class PasswordController
     #[Right('OXSREQUESTLOGGER_PASSWORD_RESET')]
     public function requestLoggerResetPassword(): string
     {
-        /** @var User $user */
-        $user = oxNew(User::class);
-
-        if (!$this->apiUserService->loadApiUser($user)) {
-            throw new UserNotFoundException();
-        }
-
-        $this->apiUserService->resetPassword($user->getId());
-
         // Generate new setup token
-        $token = Registry::getUtilsObject()->generateUId();
+        $token = $this->tokenGenerator->generate();
+
+        // Delegate to service - no more oxNew() or Registry calls
+        $this->apiUserService->resetPasswordForApiUser();
+
+        // Save token
         $this->moduleSettingService->saveString(Module::SETTING_SETUP_TOKEN, $token, Module::MODULE_ID);
 
         return $token;
+    }
+
+    private function validateToken(string $token): void
+    {
+        try {
+            $storedToken = (string) $this->moduleSettingService->getString(
+                Module::SETTING_SETUP_TOKEN,
+                Module::MODULE_ID
+            );
+        } catch (\Throwable) {
+            throw new InvalidTokenException();
+        }
+
+        // Security: Use constant-time comparison to prevent timing attacks
+        // An attacker cannot determine correct token characters by measuring response times
+        if (empty($storedToken) || !hash_equals($storedToken, $token)) {
+            throw new InvalidTokenException();
+        }
+    }
+
+    private function validatePassword(string $password): void
+    {
+        if (strlen($password) < 8) {
+            throw new PasswordTooShortException();
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace OxidSupport\RequestLoggerRemote\Service;
 use OxidEsales\Eshop\Application\Model\User;
 use OxidEsales\EshopCommunity\Internal\Framework\Database\QueryBuilderFactoryInterface;
 use OxidSupport\RequestLoggerRemote\Core\Module;
+use OxidSupport\RequestLoggerRemote\Exception\UserNotFoundException;
 
 /**
  * Service for API user operations.
@@ -56,5 +57,30 @@ final class ApiUserService implements ApiUserServiceInterface
             ->setParameter('userId', $userId);
 
         $queryBuilder->execute();
+    }
+
+    public function setPasswordForApiUser(string $password): void
+    {
+        /** @var User $user */
+        $user = oxNew(User::class);
+
+        if (!$this->loadApiUser($user)) {
+            throw new UserNotFoundException();
+        }
+
+        $user->setPassword($password);
+        $user->save();
+    }
+
+    public function resetPasswordForApiUser(): void
+    {
+        /** @var User $user */
+        $user = oxNew(User::class);
+
+        if (!$this->loadApiUser($user)) {
+            throw new UserNotFoundException();
+        }
+
+        $this->resetPassword($user->getId());
     }
 }
