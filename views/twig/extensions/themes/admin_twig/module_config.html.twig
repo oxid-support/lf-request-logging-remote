@@ -23,16 +23,16 @@
         .migration-warning h3 { color: #e65100; margin: 0 0 10px 0; }
         .migration-warning p { margin: 0 0 10px 0; }
         .migration-warning code { background: #f5f5f5; padding: 10px; display: block; border-radius: 4px; font-size: 12px; }
-        .danger-zone { margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px solid #dc3545; border-radius: 4px; }
-        .danger-zone h3 { margin: 0 0 15px 0; color: #dc3545; font-size: 14px; }
-        .danger-zone .warning-icon { font-size: 24px; margin-right: 10px; }
-        .danger-zone ul { margin: 15px 0; padding-left: 20px; }
-        .danger-zone li { color: #856404; margin: 8px 0; }
-        .danger-zone .confirm-checkbox { margin: 15px 0; padding: 10px; background: #ffe5e5; border-radius: 4px; }
-        .danger-zone .confirm-checkbox label { cursor: pointer; color: #721c24; font-weight: bold; }
-        .danger-zone button { background: #dc3545; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: not-allowed; opacity: 0.5; border-radius: 4px; }
-        .danger-zone button.enabled { cursor: pointer; opacity: 1; }
-        .danger-zone button.enabled:hover { background: #c82333; }
+        .api-reset-section { margin-top: 20px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; }
+        .api-reset-section summary { padding: 15px; cursor: pointer; list-style: none; }
+        .api-reset-section summary::-webkit-details-marker { display: none; }
+        .api-reset-section summary h3 { margin: 0; padding: 0; border: none; color: #333; font-size: 14px; display: flex; align-items: center; }
+        .api-reset-section summary h3::before { content: '\25B6'; margin-right: 10px; font-size: 10px; transition: transform 0.2s; }
+        .api-reset-section[open] summary h3::before { transform: rotate(90deg); }
+        .api-reset-section .reset-content { padding: 15px; border-top: 1px solid #ddd; }
+        .api-reset-section .reset-content p { margin: 0 0 15px 0; color: #666; }
+        .api-reset-section .reset-content ul { margin: 0 0 15px 0; padding-left: 20px; }
+        .api-reset-section .reset-content li { color: #666; margin: 5px 0; }
     </style>
 
     {% set setupToken = confstrs['oxsrequestloggerremote_SetupToken']|default('') %}
@@ -129,38 +129,42 @@
     {{ parent() }}
 
     {% if oView.getEditObjectId() == 'oxsrequestloggerremote' %}
-    <div class="danger-zone">
-        <h3><span class="warning-icon">&#9888;</span>{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_DANGER_ZONE" }) }}</h3>
-        <p>{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_RESET_DESCRIPTION" }) }}</p>
-        <ul>
-            <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_1" }) }}</li>
-            <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_2" }) }}</li>
-            <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_3" }) }}</li>
-            <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_4" }) }}</li>
-        </ul>
-        <div class="confirm-checkbox">
-            <label>
-                <input type="checkbox" id="confirmReset" onchange="
-                    var btn = document.getElementById('resetBtn');
-                    if (this.checked) {
-                        btn.classList.add('enabled');
-                        btn.disabled = false;
-                    } else {
-                        btn.classList.remove('enabled');
-                        btn.disabled = true;
-                    }
-                ">
-                {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_CONFIRM_RESET" }) }}
-            </label>
+    <details class="api-reset-section">
+        <summary><h3>{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_API_RESET_TITLE" }) }}</h3></summary>
+        <div class="reset-content">
+            <p>{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_RESET_DESCRIPTION" }) }}</p>
+            <ul>
+                <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_1" }) }}</li>
+                <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_2" }) }}</li>
+                <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_3" }) }}</li>
+                <li>&#10060; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_WARNING_4" }) }}</li>
+            </ul>
+            <div style="margin: 15px 0 0 0; padding: 15px; background: #fff3e0; border: 1px solid #ff9800; border-radius: 4px;">
+                <form method="post" action="{{ oViewConf.getSelfLink()|raw }}" onsubmit="return confirm('{{ translate({ ident: 'OXSREQUESTLOGGERREMOTE_CONFIRM_DIALOG' }) }}');">
+                    {{ oViewConf.getHiddenSid()|raw }}
+                    <input type="hidden" name="cl" value="oxsrequestloggerremote_password_reset">
+                    <input type="hidden" name="fnc" value="resetPassword">
+                    <input type="hidden" name="oxid" value="{{ oView.getEditObjectId() }}">
+                    <label style="cursor: pointer; color: #e65100; display: block; margin-bottom: 15px;">
+                        <input type="checkbox" id="confirmReset" onchange="
+                            var btn = document.getElementById('resetBtn');
+                            if (this.checked) {
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                btn.style.cursor = 'pointer';
+                            } else {
+                                btn.disabled = true;
+                                btn.style.opacity = '0.5';
+                                btn.style.cursor = 'not-allowed';
+                            }
+                        ">
+                        {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_CONFIRM_RESET" }) }}
+                    </label>
+                    <button type="submit" id="resetBtn" disabled style="display: block; background: #dc3545; color: white; border: none; padding: 8px 16px; font-size: 13px; cursor: not-allowed; opacity: 0.5; border-radius: 4px;">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_RESET_BUTTON" }) }}</button>
+                </form>
+            </div>
         </div>
-        <form method="post" action="{{ oViewConf.getSelfLink()|raw }}" onsubmit="return confirm('{{ translate({ ident: 'OXSREQUESTLOGGERREMOTE_CONFIRM_DIALOG' }) }}');">
-            {{ oViewConf.getHiddenSid()|raw }}
-            <input type="hidden" name="cl" value="oxsrequestloggerremote_password_reset">
-            <input type="hidden" name="fnc" value="resetPassword">
-            <input type="hidden" name="oxid" value="{{ oView.getEditObjectId() }}">
-            <button type="submit" id="resetBtn" disabled>&#9888; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_RESET_BUTTON" }) }}</button>
-        </form>
-    </div>
+    </details>
     {% endif %}
 {% endblock %}
 
