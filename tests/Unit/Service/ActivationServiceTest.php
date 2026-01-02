@@ -12,6 +12,7 @@ namespace OxidSupport\RequestLoggerRemote\Tests\Unit\Service;
 use Exception;
 use OxidEsales\EshopCommunity\Internal\Framework\Module\Setup\Bridge\ModuleActivationBridgeInterface;
 use OxidEsales\EshopCommunity\Internal\Transition\Utility\ContextInterface;
+use OxidEsales\GraphQL\ConfigurationAccess\Module\Service\ModuleActivationServiceInterface as ConfigAccessActivationService;
 use OxidSupport\RequestLogger\Module\Module as RequestLoggerModule;
 use OxidSupport\RequestLoggerRemote\Exception\ModuleActivationException;
 use OxidSupport\RequestLoggerRemote\Exception\ModuleDeactivationException;
@@ -24,23 +25,15 @@ final class ActivationServiceTest extends TestCase
 {
     public function testActivateReturnsTrue(): void
     {
-        $shopId = 1;
-
-        $context = $this->createMock(ContextInterface::class);
-        $context
+        $configAccessActivationService = $this->createMock(ConfigAccessActivationService::class);
+        $configAccessActivationService
             ->expects($this->once())
-            ->method('getCurrentShopId')
-            ->willReturn($shopId);
-
-        $moduleActivationBridge = $this->createMock(ModuleActivationBridgeInterface::class);
-        $moduleActivationBridge
-            ->expects($this->once())
-            ->method('activate')
-            ->with(RequestLoggerModule::ID, $shopId);
+            ->method('activateModule')
+            ->with(RequestLoggerModule::ID)
+            ->willReturn(true);
 
         $result = $this->getSut(
-            context: $context,
-            moduleActivationBridge: $moduleActivationBridge,
+            configAccessActivationService: $configAccessActivationService,
         )->activate();
 
         $this->assertTrue($result);
@@ -48,19 +41,11 @@ final class ActivationServiceTest extends TestCase
 
     public function testActivateThrowsModuleActivationExceptionOnError(): void
     {
-        $shopId = 1;
-
-        $context = $this->createMock(ContextInterface::class);
-        $context
+        $configAccessActivationService = $this->createMock(ConfigAccessActivationService::class);
+        $configAccessActivationService
             ->expects($this->once())
-            ->method('getCurrentShopId')
-            ->willReturn($shopId);
-
-        $moduleActivationBridge = $this->createMock(ModuleActivationBridgeInterface::class);
-        $moduleActivationBridge
-            ->expects($this->once())
-            ->method('activate')
-            ->with(RequestLoggerModule::ID, $shopId)
+            ->method('activateModule')
+            ->with(RequestLoggerModule::ID)
             ->willThrowException(new Exception('Activation failed'));
 
         $this->expectException(ModuleActivationException::class);
@@ -68,30 +53,21 @@ final class ActivationServiceTest extends TestCase
         $this->expectExceptionMessage('Failed to activate module');
 
         $this->getSut(
-            context: $context,
-            moduleActivationBridge: $moduleActivationBridge,
+            configAccessActivationService: $configAccessActivationService,
         )->activate();
     }
 
     public function testDeactivateReturnsTrue(): void
     {
-        $shopId = 2;
-
-        $context = $this->createMock(ContextInterface::class);
-        $context
+        $configAccessActivationService = $this->createMock(ConfigAccessActivationService::class);
+        $configAccessActivationService
             ->expects($this->once())
-            ->method('getCurrentShopId')
-            ->willReturn($shopId);
-
-        $moduleActivationBridge = $this->createMock(ModuleActivationBridgeInterface::class);
-        $moduleActivationBridge
-            ->expects($this->once())
-            ->method('deactivate')
-            ->with(RequestLoggerModule::ID, $shopId);
+            ->method('deactivateModule')
+            ->with(RequestLoggerModule::ID)
+            ->willReturn(true);
 
         $result = $this->getSut(
-            context: $context,
-            moduleActivationBridge: $moduleActivationBridge,
+            configAccessActivationService: $configAccessActivationService,
         )->deactivate();
 
         $this->assertTrue($result);
@@ -99,19 +75,11 @@ final class ActivationServiceTest extends TestCase
 
     public function testDeactivateThrowsModuleDeactivationExceptionOnError(): void
     {
-        $shopId = 1;
-
-        $context = $this->createMock(ContextInterface::class);
-        $context
+        $configAccessActivationService = $this->createMock(ConfigAccessActivationService::class);
+        $configAccessActivationService
             ->expects($this->once())
-            ->method('getCurrentShopId')
-            ->willReturn($shopId);
-
-        $moduleActivationBridge = $this->createMock(ModuleActivationBridgeInterface::class);
-        $moduleActivationBridge
-            ->expects($this->once())
-            ->method('deactivate')
-            ->with(RequestLoggerModule::ID, $shopId)
+            ->method('deactivateModule')
+            ->with(RequestLoggerModule::ID)
             ->willThrowException(new Exception('Deactivation failed'));
 
         $this->expectException(ModuleDeactivationException::class);
@@ -119,8 +87,7 @@ final class ActivationServiceTest extends TestCase
         $this->expectExceptionMessage('Failed to deactivate module');
 
         $this->getSut(
-            context: $context,
-            moduleActivationBridge: $moduleActivationBridge,
+            configAccessActivationService: $configAccessActivationService,
         )->deactivate();
     }
 
@@ -199,7 +166,7 @@ final class ActivationServiceTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function testActivateUsesCorrectShopId(): void
+    public function testIsActiveUsesCorrectShopId(): void
     {
         $shopId = 5;
 
@@ -212,44 +179,53 @@ final class ActivationServiceTest extends TestCase
         $moduleActivationBridge = $this->createMock(ModuleActivationBridgeInterface::class);
         $moduleActivationBridge
             ->expects($this->once())
-            ->method('activate')
-            ->with(RequestLoggerModule::ID, $shopId);
+            ->method('isActive')
+            ->with(RequestLoggerModule::ID, $shopId)
+            ->willReturn(true);
 
         $this->getSut(
             context: $context,
             moduleActivationBridge: $moduleActivationBridge,
+        )->isActive();
+    }
+
+    public function testActivateDelegatesToConfigAccessService(): void
+    {
+        $configAccessActivationService = $this->createMock(ConfigAccessActivationService::class);
+        $configAccessActivationService
+            ->expects($this->once())
+            ->method('activateModule')
+            ->with(RequestLoggerModule::ID)
+            ->willReturn(true);
+
+        $this->getSut(
+            configAccessActivationService: $configAccessActivationService,
         )->activate();
     }
 
-    public function testDeactivateUsesCorrectShopId(): void
+    public function testDeactivateDelegatesToConfigAccessService(): void
     {
-        $shopId = 3;
-
-        $context = $this->createMock(ContextInterface::class);
-        $context
+        $configAccessActivationService = $this->createMock(ConfigAccessActivationService::class);
+        $configAccessActivationService
             ->expects($this->once())
-            ->method('getCurrentShopId')
-            ->willReturn($shopId);
-
-        $moduleActivationBridge = $this->createMock(ModuleActivationBridgeInterface::class);
-        $moduleActivationBridge
-            ->expects($this->once())
-            ->method('deactivate')
-            ->with(RequestLoggerModule::ID, $shopId);
+            ->method('deactivateModule')
+            ->with(RequestLoggerModule::ID)
+            ->willReturn(true);
 
         $this->getSut(
-            context: $context,
-            moduleActivationBridge: $moduleActivationBridge,
+            configAccessActivationService: $configAccessActivationService,
         )->deactivate();
     }
 
     private function getSut(
         ?ContextInterface $context = null,
         ?ModuleActivationBridgeInterface $moduleActivationBridge = null,
+        ?ConfigAccessActivationService $configAccessActivationService = null,
     ): ActivationService {
         return new ActivationService(
             context: $context ?? $this->createStub(ContextInterface::class),
             moduleActivationBridge: $moduleActivationBridge ?? $this->createStub(ModuleActivationBridgeInterface::class),
+            configAccessActivationService: $configAccessActivationService ?? $this->createStub(ConfigAccessActivationService::class),
         );
     }
 }

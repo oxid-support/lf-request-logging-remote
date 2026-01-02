@@ -147,7 +147,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\n    requestLoggerSettings {\n        name\n        type\n        isSupported\n    }\n}",
+								"query": "query {\n    requestLoggerSettings {\n        name\n        type\n        supported\n    }\n}",
 								"variables": ""
 							}
 						},
@@ -181,7 +181,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\n    requestLoggerLogLevel {\n        name\n        value\n    }\n}",
+								"query": "query {\n    requestLoggerLogLevel\n}",
 								"variables": ""
 							}
 						},
@@ -215,7 +215,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\n    requestLoggerLogFrontend {\n        name\n        value\n    }\n}",
+								"query": "query {\n    requestLoggerLogFrontend\n}",
 								"variables": ""
 							}
 						},
@@ -249,7 +249,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\n    requestLoggerLogAdmin {\n        name\n        value\n    }\n}",
+								"query": "query {\n    requestLoggerLogAdmin\n}",
 								"variables": ""
 							}
 						},
@@ -283,7 +283,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\n    requestLoggerRedact {\n        name\n        value\n    }\n}",
+								"query": "query {\n    requestLoggerRedact\n}",
 								"variables": ""
 							}
 						},
@@ -317,7 +317,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query {\n    requestLoggerRedactAllValues {\n        name\n        value\n    }\n}",
+								"query": "query {\n    requestLoggerRedactAllValues\n}",
 								"variables": ""
 							}
 						},
@@ -357,7 +357,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "mutation ChangeLogLevel($value: String!) {\n    requestLoggerLogLevelChange(value: $value) {\n        name\n        value\n    }\n}",
+								"query": "mutation ChangeLogLevel($value: String!) {\n    requestLoggerLogLevelChange(value: $value)\n}",
 								"variables": "{\n    \"value\": \"detailed\"\n}"
 							}
 						},
@@ -391,7 +391,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "mutation ChangeLogFrontend($value: Boolean!) {\n    requestLoggerLogFrontendChange(value: $value) {\n        name\n        value\n    }\n}",
+								"query": "mutation ChangeLogFrontend($value: Boolean!) {\n    requestLoggerLogFrontendChange(value: $value)\n}",
 								"variables": "{\n    \"value\": true\n}"
 							}
 						},
@@ -425,7 +425,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "mutation ChangeLogAdmin($value: Boolean!) {\n    requestLoggerLogAdminChange(value: $value) {\n        name\n        value\n    }\n}",
+								"query": "mutation ChangeLogAdmin($value: Boolean!) {\n    requestLoggerLogAdminChange(value: $value)\n}",
 								"variables": "{\n    \"value\": true\n}"
 							}
 						},
@@ -459,7 +459,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "mutation ChangeRedactList($value: String!) {\n    requestLoggerRedactChange(value: $value) {\n        name\n        value\n    }\n}",
+								"query": "mutation ChangeRedactList($value: String!) {\n    requestLoggerRedactChange(value: $value)\n}",
 								"variables": "{\n    \"value\": \"[\\\"pwd\\\", \\\"lgn_pwd\\\", \\\"lgn_pwd2\\\", \\\"newPassword\\\", \\\"token\\\", \\\"apikey\\\"]\"\n}"
 							}
 						},
@@ -493,7 +493,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "mutation ChangeRedactAllValues($value: Boolean!) {\n    requestLoggerRedactAllValuesChange(value: $value) {\n        name\n        value\n    }\n}",
+								"query": "mutation ChangeRedactAllValues($value: Boolean!) {\n    requestLoggerRedactAllValuesChange(value: $value)\n}",
 								"variables": "{\n    \"value\": false\n}"
 							}
 						},

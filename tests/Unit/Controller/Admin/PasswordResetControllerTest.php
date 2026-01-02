@@ -34,14 +34,13 @@ final class PasswordResetControllerTest extends TestCase
      * 1. Generates a new setup token via TokenGeneratorInterface
      * 2. Resets the password via ApiUserService::resetPasswordForApiUser()
      * 3. Saves the token to module settings via ModuleSettingService
-     * 4. Redirects to module_config with success flag and token via RedirectService
-     * 5. If UserNotFoundException is caught, redirects with error
+     * 4. Returns redirect string for OXID's internal redirect mechanism
+     * 5. If UserNotFoundException is caught, returns error redirect string
      *
      * Benefits after refactoring:
-     * - No more oxNew() calls in controller
-     * - No more Registry static calls in controller
-     * - Services are injected (lazy-loaded via getters due to OXID constraints)
-     * - Business logic moved to services
+     * - Uses OXID's native redirect pattern (return string from action)
+     * - Session is preserved during redirect
+     * - No more custom HTTP redirect handling
      */
     public function testResetPasswordExpectedBehaviorDocumentation(): void
     {
@@ -49,6 +48,16 @@ final class PasswordResetControllerTest extends TestCase
             method_exists(PasswordResetController::class, 'resetPassword'),
             'PasswordResetController should have resetPassword method'
         );
+    }
+
+    public function testResetPasswordReturnsString(): void
+    {
+        $reflection = new \ReflectionClass(PasswordResetController::class);
+        $method = $reflection->getMethod('resetPassword');
+        $returnType = $method->getReturnType();
+
+        $this->assertNotNull($returnType, 'resetPassword should have a return type');
+        $this->assertEquals('string', $returnType->getName(), 'resetPassword should return string');
     }
 
     public function testHasPrivateGetApiUserServiceMethod(): void
@@ -90,19 +99,6 @@ final class PasswordResetControllerTest extends TestCase
         $this->assertTrue($method->isPrivate(), 'getTokenGenerator should be private');
     }
 
-    public function testHasPrivateGetRedirectServiceMethod(): void
-    {
-        $reflection = new \ReflectionClass(PasswordResetController::class);
-
-        $this->assertTrue(
-            $reflection->hasMethod('getRedirectService'),
-            'Should have getRedirectService method for lazy loading'
-        );
-
-        $method = $reflection->getMethod('getRedirectService');
-        $this->assertTrue($method->isPrivate(), 'getRedirectService should be private');
-    }
-
     public function testClassIsFinal(): void
     {
         $reflection = new \ReflectionClass(PasswordResetController::class);
@@ -130,14 +126,13 @@ final class PasswordResetControllerTest extends TestCase
         $this->assertTrue($reflection->hasProperty('apiUserService'));
         $this->assertTrue($reflection->hasProperty('moduleSettingService'));
         $this->assertTrue($reflection->hasProperty('tokenGenerator'));
-        $this->assertTrue($reflection->hasProperty('redirectService'));
     }
 
     public function testServicePropertiesAreNullableAndPrivate(): void
     {
         $reflection = new \ReflectionClass(PasswordResetController::class);
 
-        $properties = ['apiUserService', 'moduleSettingService', 'tokenGenerator', 'redirectService'];
+        $properties = ['apiUserService', 'moduleSettingService', 'tokenGenerator'];
 
         foreach ($properties as $propertyName) {
             $property = $reflection->getProperty($propertyName);

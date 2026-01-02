@@ -13,7 +13,7 @@ Ermöglicht OXID Support die Remote-Konfiguration des Request Logger Moduls ohne
 - **Abhängigkeiten**:
   - `oxid-support/request-logger` - Das Basis-Logging-Modul
   - `oxid-esales/graphql-base` - OXID GraphQL Framework
-  - `oxid-esales/graphql-configuration-access` - Shared DataTypes
+  - `oxid-esales/graphql-configuration-access` - **Muss aktiviert sein** (siehe unten)
 
 ---
 
@@ -31,12 +31,27 @@ composer require oxid-support/request-logger-remote
 # 1. Cache leeren
 ./vendor/bin/oe-console oe:cache:clear
 
-# 2. Migrations ausführen
+# 2. Configuration Access Modul aktivieren (falls noch nicht aktiv)
+./vendor/bin/oe-console oe:module:activate oe_graphql_configuration_access
+
+# 3. Migrations ausführen
 ./vendor/bin/oe-eshop-doctrine_migration migrations:migrate oxsrequestloggerremote
 
-# 3. Modul aktivieren
+# 4. Modul aktivieren
 ./vendor/bin/oe-console oe:module:activate oxsrequestloggerremote
 ```
+
+### Sicherheitshinweis zu graphql-configuration-access
+
+Das `graphql-configuration-access` Modul muss aktiviert sein, da dieses Modul dessen Services intern nutzt. **Dies stellt kein Sicherheitsrisiko dar:**
+
+| Aspekt | Bewertung |
+|--------|-----------|
+| Wer hat Zugriff auf configuration-access? | Nur `oxidadmin` Gruppe |
+| Werden neue User/Gruppen erstellt? | Nein |
+| Öffentliche Endpoints? | Nein, alle erfordern Admin-Login |
+
+**Begründung:** Wer in der `oxidadmin` Gruppe ist, hat bereits vollen Admin-Zugang zum Shop. Das Modul fügt lediglich eine GraphQL-Schnittstelle für Funktionen hinzu, die Admins sowieso schon über das Admin-Panel nutzen können. Es werden keine neuen Türen geöffnet.
 
 ### Einrichtung des Remote-Zugangs
 
