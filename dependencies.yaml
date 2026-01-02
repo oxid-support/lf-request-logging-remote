@@ -1,0 +1,4 @@
+modules:
+  - oe_graphql_base
+  - oe_graphql_configuration_access
+  - oxsrequestlogger

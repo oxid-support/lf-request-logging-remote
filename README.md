@@ -31,13 +31,16 @@ composer require oxid-support/request-logger-remote
 # 1. Cache leeren
 ./vendor/bin/oe-console oe:cache:clear
 
-# 2. Configuration Access Modul aktivieren (falls noch nicht aktiv)
+# 2. GraphQL Base Modul aktivieren (falls noch nicht aktiv)
+./vendor/bin/oe-console oe:module:activate oe_graphql_base
+
+# 3. Configuration Access Modul aktivieren (falls noch nicht aktiv)
 ./vendor/bin/oe-console oe:module:activate oe_graphql_configuration_access
 
-# 3. Migrations ausführen
+# 4. Migrations ausführen
 ./vendor/bin/oe-eshop-doctrine_migration migrations:migrate oxsrequestloggerremote
 
-# 4. Modul aktivieren
+# 5. Modul aktivieren
 ./vendor/bin/oe-console oe:module:activate oxsrequestloggerremote
 ```
 
@@ -55,10 +58,24 @@ Das `graphql-configuration-access` Modul muss aktiviert sein, da dieses Modul de
 
 ### Einrichtung des Remote-Zugangs
 
+**Voraussetzungen prüfen** (vor dem Senden des Tokens!):
+
+```bash
+# 1. GraphQL Base Modul muss installiert und aktiviert sein
+./vendor/bin/oe-console oe:module:activate oe_graphql_base
+
+# 2. Configuration Access Modul muss aktiviert sein
+./vendor/bin/oe-console oe:module:activate oe_graphql_configuration_access
+```
+
+**Dann Token an Support senden:**
+
 1. Admin öffnen: `Erweiterungen → Module → Request Logger Remote → Einstell.`
 2. Setup-Token aus dem Workflow kopieren (Klick zum Kopieren)
 3. Token an `support@oxid-esales.com` senden
 4. Warten bis OXID Support den Zugang bestätigt
+
+> **Wichtig:** Ohne aktiviertes GraphQL Base und Configuration Access Modul kann der Support den Token nicht verwenden!
 
 ---
 

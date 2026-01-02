@@ -38,6 +38,8 @@
     {% set setupToken = confstrs['oxsrequestloggerremote_SetupToken']|default('') %}
     {% set migrationExecuted = oView.isMigrationExecuted() %}
     {% set moduleActivated = oView.isModuleActivated() %}
+    {% set graphqlBaseActivated = oView.isGraphqlBaseActivated() %}
+    {% set configAccessActivated = oView.isConfigAccessActivated() %}
 
     {# Check actual setup status #}
     {% if not migrationExecuted %}
@@ -62,6 +64,8 @@
                     ">&#x1F4D1; ./vendor/bin/oe-eshop-doctrine_migration migrations:migrate oxsrequestloggerremote</code>
                     <span id="migrationCopiedMsg" style="display: none; color: #4caf50; font-weight: bold; margin-left: 10px;">&#10004; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_COPIED" }) }}</span>
                 </li>
+                <li class="{{ graphqlBaseActivated ? 'done' : 'pending' }}">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_GRAPHQL_BASE" }) }}</li>
+                <li class="{{ configAccessActivated ? 'done' : (graphqlBaseActivated ? 'pending' : 'pending') }}">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_CONFIG_ACCESS" }) }}</li>
                 <li class="{{ moduleActivated ? 'warning' : 'pending' }}">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_ACTIVATE" }) }}{% if moduleActivated %}<br><small style="font-weight: normal;">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_ACTIVATE_WARNING" }) }}</small>{% endif %}</li>
                 <li class="pending">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_SEND_TOKEN" }) }}</li>
                 <li class="pending">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_WAIT_SUPPORT" }) }}</li>
@@ -80,9 +84,22 @@
             <ol class="workflow-steps">
                 <li class="done">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_INSTALL" }) }}</li>
                 <li class="done">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_MIGRATE" }) }}</li>
+                <li class="{{ graphqlBaseActivated ? 'done' : 'active' }}">
+                    {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_GRAPHQL_BASE" }) }}
+                    {% if not graphqlBaseActivated %}<br>
+                    <small style="font-weight: normal;">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_GRAPHQL_BASE_DESC" }) }}</small>
+                    {% endif %}
+                </li>
+                <li class="{{ configAccessActivated ? 'done' : (graphqlBaseActivated ? 'active' : 'pending') }}">
+                    {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_CONFIG_ACCESS" }) }}
+                    {% if not configAccessActivated and graphqlBaseActivated %}<br>
+                    <small style="font-weight: normal;">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_CONFIG_ACCESS_DESC" }) }}</small>
+                    {% endif %}
+                </li>
                 <li class="done">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_ACTIVATE" }) }}</li>
-                <li class="active">
-                    {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_SEND_TOKEN" }) }}<br>
+                <li class="{{ (graphqlBaseActivated and configAccessActivated) ? 'active' : 'pending' }}">
+                    {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_SEND_TOKEN" }) }}
+                    {% if graphqlBaseActivated and configAccessActivated %}<br>
                     <small style="font-weight: normal;">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_SEND_TOKEN_DESC" }) }}</small><br>
                     <code id="setupTokenCode" style="display: inline-block; background: #e3f2fd; padding: 8px 12px; border-radius: 4px; margin-top: 8px; font-size: 11px; cursor: pointer; border: 1px solid #2196f3; word-break: break-all;" onclick="
                         var textarea = document.createElement('textarea');
@@ -96,9 +113,15 @@
                         setTimeout(function() { msg.style.display = 'none'; }, 2000);
                     ">&#x1F4D1; {{ setupToken }}</code>
                     <span id="tokenCopiedMsg" style="display: none; color: #4caf50; font-weight: bold; margin-left: 10px;">&#10004; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_COPIED" }) }}</span>
+                    {% endif %}
                 </li>
                 <li class="pending">{{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_STEP_WAIT_SUPPORT" }) }}</li>
             </ol>
+            {% if not graphqlBaseActivated or not configAccessActivated %}
+            <p style="margin-top: 15px; padding: 10px; background: #fff3e0; border: 1px solid #ff9800; border-radius: 4px; color: #e65100;">
+                <strong>&#9888; {{ translate({ ident: "OXSREQUESTLOGGERREMOTE_SETUP_PREREQUISITES_WARNING" }) }}</strong>
+            </p>
+            {% endif %}
         </div>
     {% endif %}
     {% endif %}

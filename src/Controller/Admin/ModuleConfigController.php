@@ -26,6 +26,9 @@ class ModuleConfigController extends ModuleConfiguration
     private ?ShopConfigurationDaoInterface $shopConfigurationDao = null;
     private ?SetupStatusServiceInterface $setupStatusService = null;
 
+    private const GRAPHQL_BASE_MODULE_ID = 'oe_graphql_base';
+    private const CONFIG_ACCESS_MODULE_ID = 'oe_graphql_configuration_access';
+
     /**
      * Check if the module is activated.
      */
@@ -35,12 +38,36 @@ class ModuleConfigController extends ModuleConfiguration
             return false;
         }
 
+        return $this->isModuleActive(Module::MODULE_ID);
+    }
+
+    /**
+     * Check if GraphQL Base module is activated.
+     */
+    public function isGraphqlBaseActivated(): bool
+    {
+        return $this->isModuleActive(self::GRAPHQL_BASE_MODULE_ID);
+    }
+
+    /**
+     * Check if Configuration Access module is activated.
+     */
+    public function isConfigAccessActivated(): bool
+    {
+        return $this->isModuleActive(self::CONFIG_ACCESS_MODULE_ID);
+    }
+
+    /**
+     * Check if a specific module is activated.
+     */
+    private function isModuleActive(string $moduleId): bool
+    {
         try {
             $shopConfiguration = $this->getShopConfigurationDao()->get(
                 $this->getContext()->getCurrentShopId()
             );
             return $shopConfiguration
-                ->getModuleConfiguration(Module::MODULE_ID)
+                ->getModuleConfiguration($moduleId)
                 ->isActivated();
         } catch (\Exception) {
             return false;
